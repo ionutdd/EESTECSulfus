@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 from scapy.all import rdpcap
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
 from concurrent.futures import ProcessPoolExecutor
@@ -69,23 +69,29 @@ def main():
         data_batches.extend(data_batch)
         labels_batches.extend(labels_batch)
 
-    logging.info("Vectorizing training data using TF-IDF...")
-    # Vectorize JSON data with TfidfVectorizer, optimized with min_df and max_df
-    vectorizer = TfidfVectorizer(max_features=1000, max_df=0.85, min_df=5, stop_words='english')
-    X_train = vectorizer.fit_transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+    logging.info("Vectorizing training data using TF-IDF + CountVectorizer...")
+    # Vectorize JSON data with TF-IDF and CountVectorizer
+    tfidf_vectorizer = TfidfVectorizer(max_features=1000, max_df=0.85, min_df=5, stop_words='english')
+    count_vectorizer = CountVectorizer(max_features=500, stop_words='english')
+
+    tfidf_X_train = tfidf_vectorizer.fit_transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+    count_X_train = count_vectorizer.fit_transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+
+    # Combine both features
+    X_train_combined = np.hstack([tfidf_X_train.toarray(), count_X_train.toarray()])
 
     logging.info("Scaling training data...")
     # Scale data to standardize feature range (only if necessary)
     scaler = StandardScaler(with_mean=False)
-    X_train = scaler.fit_transform(X_train)
+    X_train_combined = scaler.fit_transform(X_train_combined)
 
     # Optimize Random Forest parameters with a more focused search
     model = RandomForestClassifier(random_state=42, warm_start=True, n_jobs=-1)
     param_dist = {
-        'n_estimators': [100, 150, 200],
+        'n_estimators': [100, 150, 200, 250],
         'max_depth': [20, 50, 100],
-        'min_samples_split': [2, 5],
-        'min_samples_leaf': [1, 2]
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4]
     }
 
     # Use StratifiedKFold for better cross-validation to handle imbalanced classes
@@ -94,7 +100,7 @@ def main():
 
     logging.info("Starting hyperparameter search...")
     start_time = time.time()
-    randomized_search.fit(X_train, labels_batches)
+    randomized_search.fit(X_train_combined, labels_batches)
     best_model = randomized_search.best_estimator_
 
     logging.info(f"Best model found: {randomized_search.best_params_}")
@@ -105,11 +111,15 @@ def main():
     for data_batch, _ in process_files_in_batches(INPUT_DIR / 'test', batch_size=20):
         test_data_batches.extend(data_batch)
 
-    X_test = vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in test_data_batches])
-    X_test = scaler.transform(X_test)
+    tfidf_X_test = tfidf_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in test_data_batches])
+    count_X_test = count_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in test_data_batches])
+
+    # Combine test features
+    X_test_combined = np.hstack([tfidf_X_test.toarray(), count_X_test.toarray()])
+    X_test_combined = scaler.transform(X_test_combined)
 
     logging.info("Making predictions on test data...")
-    predictions = best_model.predict(X_test)
+    predictions = best_model.predict(X_test_combined)
     
     labels = {file.name: int(pred) for file, pred in zip((INPUT_DIR / "test").iterdir(), predictions)}
 
@@ -119,12 +129,14 @@ def main():
 
     logging.info("Saving model, vectorizer, and metadata...")
     joblib.dump(best_model, OUTPUT_DIR / 'random_forest_model.pkl')
-    joblib.dump(vectorizer, OUTPUT_DIR / 'vectorizer.pkl')
+    joblib.dump(tfidf_vectorizer, OUTPUT_DIR / 'tfidf_vectorizer.pkl')
+    joblib.dump(count_vectorizer, OUTPUT_DIR / 'count_vectorizer.pkl')
 
     with open(OUTPUT_DIR / 'metadata.json', 'w') as f:
         json.dump({
             'model_params': randomized_search.best_params_,
-            'feature_names': vectorizer.get_feature_names_out()
+            'tfidf_feature_names': tfidf_vectorizer.get_feature_names_out(),
+            'count_feature_names': count_vectorizer.get_feature_names_out()
         }, f)
 
 if __name__ == "__main__":
