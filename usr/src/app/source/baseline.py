@@ -93,13 +93,13 @@ def main():
     
     # Hyperparameter tuning using GridSearchCV
     param_grid = {
-        'n_estimators': [50, 100, 150, 200, 250],
-        'max_depth': [50],
+        'n_estimators': [50, 100, 150, 200, 225, 250, 275, 300],
+        'max_depth': [75],
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 4]
     }
 
-    grid_search = GridSearchCV(model, param_grid, cv=3, n_jobs=-1, verbose=2)
+    grid_search = GridSearchCV(model, param_grid, cv=5, n_jobs=-1, verbose=2)
     logging.info("Starting hyperparameter search...")
     grid_search.fit(X_train, train_labels)
     best_model = grid_search.best_estimator_
