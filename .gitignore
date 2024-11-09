@@ -1,0 +1,24 @@
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environments
+env/
+*.env
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore .idea or editor-related files (if using IntelliJ IDEA/JetBrains)
+.idea/
+
+# Ignore log files
+*.log
+
+# Ignore Docker and other build artifacts
+*.tar
+*.gz
+*.zip

@@ -1,0 +1,15 @@
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore Git-related files
+.git/
+.gitignore
+
+# Ignore local development environment files
+*.env
+
+# Ignore log files
+*.log
