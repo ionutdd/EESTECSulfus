@@ -1,11 +1,12 @@
 import json
 from pathlib import Path
-from scapy.all import rdpcap
+from scapy.all import rdpcap, TCP, IP
 from sklearn.ensemble import IsolationForest
 from sklearn.feature_extraction import DictVectorizer
+from collections import defaultdict
 
-INPUT_DIR = Path('/usr/src/app/InputData')
-OUTPUT_DIR = Path('/usr/src/app/output')
+INPUT_DIR = Path('/mnt/c/users/ionut/desktop/usr/src/app/InputData')
+OUTPUT_DIR = Path('/mnt/c/users/ionut/desktop/usr/src/app/output')
 
 def extract_events_from_pcap(file_path):
     # Extract JSON events from TCP payloads in PCAP file
@@ -36,6 +37,8 @@ def extract_events_from_pcap(file_path):
     
     return events
 
+
+
 def flatten_dict(d, parent_key='', sep='_'):
     # Helper function to flatten a dictionary
     items = []
@@ -59,6 +62,7 @@ def prepare_data(input_dir, is_training=True):
     data, labels = [], []
     for file in input_dir.iterdir():
         events = extract_events_from_pcap(str(file))
+
         for event in events:
             event = preprocess_event(event)  # Flatten the event dictionary
             if is_training:
@@ -75,7 +79,7 @@ def main():
     X_train = vectorizer.fit_transform(train_data)
     
     # Train the Isolation Forest model
-    model = IsolationForest(contamination=0.1, random_state=42)
+    model = IsolationForest(contamination=0.2, random_state=42)
     model.fit(X_train)
     
     # Prepare and predict on test data
