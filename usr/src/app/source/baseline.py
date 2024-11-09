@@ -6,8 +6,8 @@ from scapy.all import rdpcap
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import RandomizedSearchCV
-from concurrent.futures import ThreadPoolExecutor
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
+from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 import joblib
 import os
@@ -35,7 +35,7 @@ def extract_events_from_pcap(file_path):
     return events
 
 def flatten_event(event):
-    """Flatten nested structures in events with optimized handling for nested keys."""
+    """Flatten nested structures in events."""
     flattened = {}
     for key, value in event.items():
         if isinstance(value, dict):
@@ -51,7 +51,7 @@ def process_files_in_batches(input_dir, batch_size=20):
     for i in range(0, len(files), batch_size):
         batch_files = files[i:i+batch_size]
         data, labels = [], []
-        with ThreadPoolExecutor() as executor:
+        with ProcessPoolExecutor() as executor:
             results = executor.map(extract_events_from_pcap, (str(file) for file in batch_files))
         for events in results:
             for event in events:
@@ -70,16 +70,16 @@ def main():
         labels_batches.extend(labels_batch)
 
     logging.info("Vectorizing training data using TF-IDF...")
-    # Vectorize JSON data with TfidfVectorizer for compactness
-    vectorizer = TfidfVectorizer(max_features=500)  # Limit features to top 500 terms
+    # Vectorize JSON data with TfidfVectorizer, optimized with min_df and max_df
+    vectorizer = TfidfVectorizer(max_features=1000, max_df=0.85, min_df=5, stop_words='english')
     X_train = vectorizer.fit_transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
 
     logging.info("Scaling training data...")
-    # Scale data to standardize feature range
+    # Scale data to standardize feature range (only if necessary)
     scaler = StandardScaler(with_mean=False)
     X_train = scaler.fit_transform(X_train)
 
-    # Optimize Random Forest parameters with limited search space
+    # Optimize Random Forest parameters with a more focused search
     model = RandomForestClassifier(random_state=42, warm_start=True, n_jobs=-1)
     param_dist = {
         'n_estimators': [100, 150, 200],
@@ -88,8 +88,10 @@ def main():
         'min_samples_leaf': [1, 2]
     }
 
-    randomized_search = RandomizedSearchCV(model, param_distributions=param_dist, n_iter=10, cv=3, n_jobs=-1, verbose=1, random_state=42)
-    
+    # Use StratifiedKFold for better cross-validation to handle imbalanced classes
+    cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+    randomized_search = RandomizedSearchCV(model, param_distributions=param_dist, n_iter=10, cv=cv, n_jobs=-1, verbose=1, random_state=42)
+
     logging.info("Starting hyperparameter search...")
     start_time = time.time()
     randomized_search.fit(X_train, labels_batches)
