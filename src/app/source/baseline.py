@@ -5,8 +5,8 @@ from sklearn.ensemble import IsolationForest
 from sklearn.feature_extraction import DictVectorizer
 from collections import defaultdict
 
-INPUT_DIR = Path('/mnt/c/users/ionut/desktop/usr/src/app/InputData')
-OUTPUT_DIR = Path('/mnt/c/users/ionut/desktop/usr/src/app/output')
+INPUT_DIR = Path('/usr/src/app/InputData')
+OUTPUT_DIR = Path('/usr/src/app/output')
 
 def extract_events_from_pcap(file_path):
     # Extract JSON events from TCP payloads in PCAP file
@@ -79,7 +79,7 @@ def main():
     X_train = vectorizer.fit_transform(train_data)
     
     # Train the Isolation Forest model
-    model = IsolationForest(contamination=0.2, random_state=42)
+    model = IsolationForest(contamination=0.49,random_state=42)
     model.fit(X_train)
     
     # Prepare and predict on test data
