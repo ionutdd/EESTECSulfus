@@ -9,7 +9,7 @@ INPUT_DIR = Path('/usr/src/app/InputData')
 OUTPUT_DIR = Path('/usr/src/app/output')
 
 def extract_events_from_pcap(file_path):
-    """Extract JSON events from TCP payloads in PCAP file."""
+    # Extract JSON events from TCP payloads in PCAP file
     packets = rdpcap(file_path)
     events = []
     for pkt in packets:
@@ -23,7 +23,7 @@ def extract_events_from_pcap(file_path):
     return events
 
 def prepare_data(input_dir, is_training=True):
-    """Load and process data from PCAP files."""
+    # Load and process data from PCAP files
     data, labels = [], []
     for file in input_dir.iterdir():
         events = extract_events_from_pcap(file)
@@ -35,7 +35,7 @@ def prepare_data(input_dir, is_training=True):
 
 def main():
     # Prepare the training data
-    train_data, train_labels = prepare_data(INPUT_DIR / 'train')
+    train_data, train_labels = prepare_data(INPUT_DIR / "train")
     
     # Vectorize the JSON data to prepare for the Isolation Forest
     vectorizer = DictVectorizer(sparse=False)
@@ -51,7 +51,7 @@ def main():
     predictions = model.predict(X_test)
     
     # Output results
-    labels = {file.name: int(pred == -1) for file, pred in zip((INPUT_DIR / 'test').iterdir(), predictions)}
+    labels = {file.name: int(pred == -1) for file, pred in zip((INPUT_DIR / "test").iterdir(), predictions)}
     (OUTPUT_DIR / 'labels').write_text(json.dumps(labels))
 
 if __name__ == "__main__":
