@@ -95,18 +95,22 @@ def main():
 
     # Hyperparameter tuning using RandomizedSearchCV
     param_dist = {
-        'n_estimators': np.arange(50, 301, 50),
-        'max_depth': [None, 10, 50, 100],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4]
+        'n_estimators': np.arange(50, 301, 50),  # Number of trees in the forest
+        'max_depth': [None, 10, 50, 100],  # Max depth of the tree
+        'min_samples_split': [2, 5, 10],  # Minimum number of samples required to split a node
+        'min_samples_leaf': [1, 2, 4, 8],  # Minimum number of samples required to be at a leaf node
+        'max_features': ['auto', 'sqrt', 'log2']  # Number of features to consider at each split
     }
 
+    # RandomizedSearchCV for hyperparameter tuning
     randomized_search = RandomizedSearchCV(model, param_distributions=param_dist,
-                                           n_iter=10, cv=5, n_jobs=-1, verbose=2, random_state=42)
+                                           n_iter=50, cv=5, n_jobs=-1, verbose=2, random_state=42)
+    
     logging.info("Starting hyperparameter search...")
     start_time = time.time()
     randomized_search.fit(X_train, labels_batches)
     best_model = randomized_search.best_estimator_
+    
     logging.info(f"Best model found: {randomized_search.best_params_}")
     logging.info(f"RandomizedSearchCV took {time.time() - start_time:.2f} seconds")
 
