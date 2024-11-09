@@ -20,19 +20,23 @@ OUTPUT_DIR = Path('/usr/src/app/output')
 
 def extract_events_from_pcap(file_path):
     """Extract events from PCAP files with optimized JSON decoding."""
-    packets = rdpcap(file_path)
-    events = []
+    try:
+        packets = rdpcap(file_path)
+        events = []
 
-    for pkt in packets:
-        if pkt.haslayer('TCP') and pkt['TCP'].payload:
-            try:
-                payload = pkt['TCP'].payload.load.decode('utf-8')
-                event = json.loads(payload)
-                if isinstance(event, dict):
-                    events.append(event)
-            except (UnicodeDecodeError, json.JSONDecodeError):
-                continue
-    return events
+        for pkt in packets:
+            if pkt.haslayer('TCP') and pkt['TCP'].payload:
+                try:
+                    payload = pkt['TCP'].payload.load.decode('utf-8')
+                    event = json.loads(payload)
+                    if isinstance(event, dict):
+                        events.append(event)
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    continue
+        return events
+    except Exception as e:
+        logging.error(f"Error processing {file_path}: {e}")
+        return []
 
 def flatten_event(event):
     """Flatten nested structures in events."""
@@ -60,6 +64,16 @@ def process_files_in_batches(input_dir, batch_size=20):
                 labels.append(event.get('label', 0))
         yield data, labels
 
+def vectorize_data(data_batches, tfidf_vectorizer, count_vectorizer):
+    """Vectorize the data using both TF-IDF and CountVectorizer."""
+    try:
+        tfidf_X = tfidf_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+        count_X = count_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+        return tfidf_X, count_X
+    except Exception as e:
+        logging.error(f"Error during vectorization: {e}")
+        return None, None
+
 def main():
     logging.info("Loading and preparing training data...")
 
@@ -74,8 +88,15 @@ def main():
     tfidf_vectorizer = TfidfVectorizer(max_features=1000, max_df=0.85, min_df=5, stop_words='english')
     count_vectorizer = CountVectorizer(max_features=500, stop_words='english')
 
-    tfidf_X_train = tfidf_vectorizer.fit_transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
-    count_X_train = count_vectorizer.fit_transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+    # Fit the vectorizers on the training data
+    tfidf_vectorizer.fit([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+    count_vectorizer.fit([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+
+    tfidf_X_train, count_X_train = vectorize_data(data_batches, tfidf_vectorizer, count_vectorizer)
+
+    if tfidf_X_train is None or count_X_train is None:
+        logging.error("Error during vectorization, aborting...")
+        return
 
     # Combine both features
     X_train_combined = np.hstack([tfidf_X_train.toarray(), count_X_train.toarray()])
@@ -111,8 +132,11 @@ def main():
     for data_batch, _ in process_files_in_batches(INPUT_DIR / 'test', batch_size=20):
         test_data_batches.extend(data_batch)
 
-    tfidf_X_test = tfidf_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in test_data_batches])
-    count_X_test = count_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in test_data_batches])
+    tfidf_X_test, count_X_test = vectorize_data(test_data_batches, tfidf_vectorizer, count_vectorizer)
+
+    if tfidf_X_test is None or count_X_test is None:
+        logging.error("Error during test data vectorization, aborting...")
+        return
 
     # Combine test features
     X_test_combined = np.hstack([tfidf_X_test.toarray(), count_X_test.toarray()])
