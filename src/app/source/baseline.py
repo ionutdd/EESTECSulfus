@@ -1,95 +1,172 @@
 import json
+import logging
+import time
 from pathlib import Path
-from scapy.all import rdpcap, TCP, IP
-from sklearn.ensemble import IsolationForest
-from sklearn.feature_extraction import DictVectorizer
-from collections import defaultdict
+from scapy.all import rdpcap
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
+from sklearn.feature_selection import VarianceThreshold
+from concurrent.futures import ProcessPoolExecutor
+import numpy as np
+import joblib
+import os
+from scipy.sparse import hstack
+
+# Set up logging for better tracking
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 INPUT_DIR = Path('/usr/src/app/InputData')
 OUTPUT_DIR = Path('/usr/src/app/output')
 
 def extract_events_from_pcap(file_path):
-    # Extract JSON events from TCP payloads in PCAP file
-    packets = rdpcap(file_path)
-    events = []
-    
-    for pkt in packets:
-        if pkt.haslayer('TCP') and pkt['TCP'].payload:
-            try:
-                payload = pkt['TCP'].payload.load.decode('utf-8')  # Decode the payload to string
-                
-                # Check if the payload is already a dictionary
+    """Extract events from PCAP files with optimized JSON decoding."""
+    try:
+        packets = rdpcap(file_path)
+        events = []
+        for pkt in packets:
+            if pkt.haslayer('TCP') and pkt['TCP'].payload:
                 try:
-                    event = json.loads(payload)  # Try to parse as JSON
-                except json.JSONDecodeError:
-                    event = payload  # If not a valid JSON, keep it as a string
-                
-                # If it's not a string (already a dictionary), append it directly
-                if isinstance(event, dict):
-                    events.append(event)
-                else:
-                    # Handle cases where event is not a dictionary
+                    payload = pkt['TCP'].payload.load.decode('utf-8')
+                    event = json.loads(payload)
+                    if isinstance(event, dict):
+                        events.append(event)
+                except (UnicodeDecodeError, json.JSONDecodeError):
                     continue
-                    
-            except (UnicodeDecodeError, json.JSONDecodeError) as e:
-                # Skip packets with decoding errors
-                continue
-    
-    return events
+        return events
+    except Exception as e:
+        logging.error(f"Error processing {file_path}: {e}")
+        return []
 
-
-
-def flatten_dict(d, parent_key='', sep='_'):
-    # Helper function to flatten a dictionary
-    items = []
-    for k, v in d.items():
-        new_key = f"{parent_key}{sep}{k}" if parent_key else k
-        if isinstance(v, dict):
-            items.extend(flatten_dict(v, new_key, sep=sep).items())
-        elif isinstance(v, list):
-            # If the value is a list, join it into a string
-            items.append((new_key, ', '.join(map(str, v))))
+def flatten_event(event):
+    """Flatten nested structures in events."""
+    flattened = {}
+    for key, value in event.items():
+        if isinstance(value, dict):
+            for sub_key, sub_value in value.items():
+                flattened[f"{key}_{sub_key}"] = sub_value
         else:
-            items.append((new_key, v))
-    return dict(items)
+            flattened[key] = value
+    return flattened
 
-def preprocess_event(event):
-    # Preprocess each event dictionary to handle nested structures
-    return flatten_dict(event)
+def process_files_in_batches(input_dir, batch_size=20):
+    """Process files in larger batches to optimize memory usage."""
+    files = list(input_dir.iterdir())
+    for i in range(0, len(files), batch_size):
+        batch_files = files[i:i+batch_size]
+        data, labels = [], []
+        with ProcessPoolExecutor() as executor:
+            results = executor.map(extract_events_from_pcap, (str(file) for file in batch_files))
+        for events in results:
+            for event in events:
+                event = flatten_event(event)
+                data.append(event)
+                labels.append(event.get('label', 0))
+        yield data, labels
 
-def prepare_data(input_dir, is_training=True):
-    # Load and process data from PCAP files
-    data, labels = [], []
-    for file in input_dir.iterdir():
-        events = extract_events_from_pcap(str(file))
-
-        for event in events:
-            event = preprocess_event(event)  # Flatten the event dictionary
-            if is_training:
-                labels.append(event.get('label'))
-            data.append(event)
-    return data, labels if is_training else data
+def vectorize_data(data_batches, tfidf_vectorizer, count_vectorizer):
+    """Vectorize the data using both TF-IDF and CountVectorizer."""
+    try:
+        tfidf_X = tfidf_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+        count_X = count_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+        return tfidf_X, count_X
+    except Exception as e:
+        logging.error(f"Error during vectorization: {e}")
+        return None, None
 
 def main():
-    # Prepare the training data
-    train_data, train_labels = prepare_data(INPUT_DIR / "train")
+    logging.info("Loading and preparing training data...")
+
+    # Process and flatten data
+    data_batches, labels_batches = [], []
+    for data_batch, labels_batch in process_files_in_batches(INPUT_DIR / "train"):
+        data_batches.extend(data_batch)
+        labels_batches.extend(labels_batch)
+
+    logging.info("Vectorizing training data using TF-IDF + CountVectorizer...")
+    tfidf_vectorizer = TfidfVectorizer(max_features=1000, max_df=0.85, min_df=5, stop_words='english')
+    count_vectorizer = CountVectorizer(max_features=500, stop_words='english')
+
+    # Fit the vectorizers on the training data
+    tfidf_vectorizer.fit([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+    count_vectorizer.fit([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+
+    tfidf_X_train, count_X_train = vectorize_data(data_batches, tfidf_vectorizer, count_vectorizer)
+
+    if tfidf_X_train is None or count_X_train is None:
+        logging.error("Error during vectorization, aborting...")
+        return
+
+    # Combine both features using sparse matrix to save memory
+    X_train_combined = hstack([tfidf_X_train, count_X_train])
+
+    # Apply feature selection to remove low-variance features
+    logging.info("Applying Variance Threshold for feature selection...")
+    selector = VarianceThreshold(threshold=0.001)
+    X_train_combined = selector.fit_transform(X_train_combined)
+
+    logging.info("Scaling training data...")
+    scaler = StandardScaler(with_mean=False)
+    X_train_combined = scaler.fit_transform(X_train_combined)
+
+    # Hyperparameter tuning with RandomizedSearchCV on Random Forest
+    model = RandomForestClassifier(random_state=42, warm_start=True, n_jobs=-1)
+    param_dist = {
+        'n_estimators': [100, 150, 200, 250],
+        'max_depth': [20, 50, 100],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4]
+    }
+
+    cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+    randomized_search = RandomizedSearchCV(model, param_distributions=param_dist, n_iter=15, cv=cv, n_jobs=-1, verbose=1, random_state=42)
+
+    logging.info("Starting hyperparameter search...")
+    start_time = time.time()
+    randomized_search.fit(X_train_combined, labels_batches)
+    best_model = randomized_search.best_estimator_
+
+    logging.info(f"Best model found: {randomized_search.best_params_}")
+    logging.info(f"RandomizedSearchCV took {time.time() - start_time:.2f} seconds")
+
+    logging.info("Preparing test data...")
+    test_data_batches = []
+    for data_batch, _ in process_files_in_batches(INPUT_DIR / 'test', batch_size=20):
+        test_data_batches.extend(data_batch)
+
+    tfidf_X_test, count_X_test = vectorize_data(test_data_batches, tfidf_vectorizer, count_vectorizer)
+
+    if tfidf_X_test is None or count_X_test is None:
+        logging.error("Error during test data vectorization, aborting...")
+        return
+
+    # Combine test features and apply transformations
+    X_test_combined = hstack([tfidf_X_test, count_X_test])
+    X_test_combined = selector.transform(X_test_combined)
+    X_test_combined = scaler.transform(X_test_combined)
+
+    logging.info("Making predictions on test data...")
+    predictions = best_model.predict(X_test_combined)
     
-    # Vectorize the JSON data to prepare for the Isolation Forest
-    vectorizer = DictVectorizer(sparse=False)
-    X_train = vectorizer.fit_transform(train_data)
-    
-    # Train the Isolation Forest model
-    model = IsolationForest(contamination=0.49,random_state=42)
-    model.fit(X_train)
-    
-    # Prepare and predict on test data
-    test_data, _ = prepare_data(INPUT_DIR / 'test', is_training=False)
-    X_test = vectorizer.transform(test_data)
-    predictions = model.predict(X_test)
-    
-    # Output results
-    labels = {file.name: int(pred == -1) for file, pred in zip((INPUT_DIR / "test").iterdir(), predictions)}
+    labels = {file.name: int(pred) for file, pred in zip((INPUT_DIR / "test").iterdir(), predictions)}
+
+    logging.info(f"Writing results to {OUTPUT_DIR / 'labels'}...")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     (OUTPUT_DIR / 'labels').write_text(json.dumps(labels))
+
+    logging.info("Saving model, vectorizer, and metadata...")
+    joblib.dump(best_model, OUTPUT_DIR / 'random_forest_model.pkl')
+    joblib.dump(tfidf_vectorizer, OUTPUT_DIR / 'tfidf_vectorizer.pkl')
+    joblib.dump(count_vectorizer, OUTPUT_DIR / 'count_vectorizer.pkl')
+    joblib.dump(selector, OUTPUT_DIR / 'variance_selector.pkl')
+
+    with open(OUTPUT_DIR / 'metadata.json', 'w') as f:
+        json.dump({
+            'model_params': randomized_search.best_params_,
+            'tfidf_feature_names': tfidf_vectorizer.get_feature_names_out(),
+            'count_feature_names': count_vectorizer.get_feature_names_out()
+        }, f)
 
 if __name__ == "__main__":
     main()
