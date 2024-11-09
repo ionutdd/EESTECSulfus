@@ -1,0 +1,51 @@
+[
+    {
+        "event": {
+            "action": "File created (rule: FileCreate)",
+            "category": [
+                "file"
+            ],
+            "code": "11",
+            "kind": "event",
+            "module": "sysmon",
+            "provider": "Microsoft-Windows-Sysmon",
+            "type": [
+                "creation"
+            ]
+        },
+        "file": {
+            "directory": "C:\\Users\\LAB Administrator\\Desktop\\pypykatz-main\\pypykatz\\lsadecryptor",
+            "extension": "py",
+            "name": "lsa_template_nt6.py",
+            "path": "C:\\Users\\LAB Administrator\\Desktop\\pypykatz-main\\pypykatz\\lsadecryptor\\lsa_template_nt6.py"
+        },
+        "label": 1,
+        "log": {
+            "level": "information"
+        },
+        "message": "File created:\nRuleName: -\nProcessGuid: {c6555c30-509e-66c4-4e01-000000001300}\nProcessId: 6584\nImage: C:\\Windows\\Explorer.EXE\nTargetFilename: C:\\Users\\LAB Administrator\\Desktop\\pypykatz-main\\pypykatz\\lsadecryptor\\lsa_template_nt6.py\nUser: MELD\\LAB Administrator\n",
+        "process": {
+            "executable": "C:\\Windows\\Explorer.EXE",
+            "name": "Explorer.EXE"
+        },
+        "winlog": {
+            "api": "wineventlog",
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_data": {
+                "User": "MELD\\LAB Administrator"
+            },
+            "event_id": "11",
+            "opcode": "Info",
+            "provider_guid": "{5770385f-c22a-43e0-bf4c-06f5698ffbd9}",
+            "provider_name": "Microsoft-Windows-Sysmon",
+            "task": "File created (rule: FileCreate)",
+            "user": {
+                "domain": "NT AUTHORITY",
+                "identifier": "S-1-5-18",
+                "name": "SYSTEM",
+                "type": "User"
+            },
+            "version": 2
+        }
+    }
+]

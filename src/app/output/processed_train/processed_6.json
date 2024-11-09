@@ -1,0 +1,26 @@
+[
+    {
+        "event_action": "File System",
+        "event_code": "4664",
+        "event_kind": "event",
+        "event_outcome": "success",
+        "event_provider": "Microsoft-Windows-Security-Auditing",
+        "log_level": "information",
+        "message": "An attempt was made to create a hard link.\n\nSubject:\n\tAccount Name:\t\tS-1-5-18\n\tAccount Name:\t\tws2$\n\tAccount Domain:\t\tMELD\n\tLogon ID:\t\t0x3E7\n\nLink Information:\n\tFile Name:\tC:\\Program Files\\WindowsApps\\Microsoft.WebMediaExtensions_1.0.20875.0_x64__8wekyb3d8bbwe\\Assets\\AppList.targetsize-48.png\n\tLink Name:\tC:\\Program Files\\WindowsApps\\Microsoft.WebMediaExtensions_1.1.1295.0_x64__8wekyb3d8bbwe\\Assets\\contrast-black\\AppList.targetsize-48_contrast-black.png\n\tTransaction ID:\t{00000000-0000-0000-0000-000000000000}\n",
+        "winlog_api": "wineventlog",
+        "winlog_channel": "Security",
+        "winlog_event_data_FileName": "C:\\Program Files\\WindowsApps\\Microsoft.WebMediaExtensions_1.0.20875.0_x64__8wekyb3d8bbwe\\Assets\\AppList.targetsize-48.png",
+        "winlog_event_data_LinkName": "C:\\Program Files\\WindowsApps\\Microsoft.WebMediaExtensions_1.1.1295.0_x64__8wekyb3d8bbwe\\Assets\\contrast-black\\AppList.targetsize-48_contrast-black.png",
+        "winlog_event_data_SubjectDomainName": "MELD",
+        "winlog_event_data_SubjectLogonId": "0x3e7",
+        "winlog_event_data_SubjectUserName": "ws2$",
+        "winlog_event_data_SubjectUserSid": "S-1-5-18",
+        "winlog_event_data_TransactionId": "{00000000-0000-0000-0000-000000000000}",
+        "winlog_event_id": "4664",
+        "winlog_keywords": "Audit Success",
+        "winlog_opcode": "Info",
+        "winlog_provider_guid": "{54849625-5478-4994-a5ba-3e3b0328c30d}",
+        "winlog_provider_name": "Microsoft-Windows-Security-Auditing",
+        "winlog_task": "File System"
+    }
+]

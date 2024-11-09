@@ -1,0 +1,29 @@
+[
+    {
+        "event_action": "Filtering Platform Policy Change",
+        "event_code": "5449",
+        "event_kind": "event",
+        "event_outcome": "success",
+        "event_provider": "Microsoft-Windows-Security-Auditing",
+        "log_level": "information",
+        "message": "A Windows Filtering Platform provider context has been changed.\n\t\nSubject:\n\tSecurity ID:\t\tS-1-5-19\n\tAccount Name:\t\tNT AUTHORITY\\LOCAL SERVICE\n\nProcess Information:\n\tProcess ID:\t1596\n\nProvider Information:\n\tProvider ID:\t{decc16ca-3f33-4346-be1e-8fb4ae0f3d62}\n\tProvider Name:\tMicrosoft Corporation\n\nChange Information:\n\tChange Type:\tAdd\n\nProvider Context:\n\tID:\t{77cf60cb-73a8-4696-a9fd-05f9246ae7cc}\n\tName:\tMPSSVC\n\tType:\tNot persistent\n",
+        "winlog_activity_id": "{ea50760d-377f-0001-ef09-68fad5e7da01}",
+        "winlog_api": "wineventlog",
+        "winlog_channel": "Security",
+        "winlog_event_data_ChangeType": "%%16384",
+        "winlog_event_data_ProcessId": "1596",
+        "winlog_event_data_ProviderContextKey": "{77cf60cb-73a8-4696-a9fd-05f9246ae7cc}",
+        "winlog_event_data_ProviderContextName": "MPSSVC",
+        "winlog_event_data_ProviderContextType": "%%16388",
+        "winlog_event_data_ProviderKey": "{decc16ca-3f33-4346-be1e-8fb4ae0f3d62}",
+        "winlog_event_data_ProviderName": "Microsoft Corporation",
+        "winlog_event_data_UserName": "NT AUTHORITY\\LOCAL SERVICE",
+        "winlog_event_data_UserSid": "S-1-5-19",
+        "winlog_event_id": "5449",
+        "winlog_keywords": "Audit Success",
+        "winlog_opcode": "Info",
+        "winlog_provider_guid": "{54849625-5478-4994-a5ba-3e3b0328c30d}",
+        "winlog_provider_name": "Microsoft-Windows-Security-Auditing",
+        "winlog_task": "Filtering Platform Policy Change"
+    }
+]

@@ -1,0 +1,102 @@
+[
+    {
+        "event": {
+            "action": "Executing Pipeline",
+            "category": [
+                "process"
+            ],
+            "code": "4103",
+            "kind": "event",
+            "module": "powershell",
+            "provider": "Microsoft-Windows-PowerShell",
+            "sequence": 396,
+            "type": [
+                "info"
+            ]
+        },
+        "label": 1,
+        "log": {
+            "level": "information"
+        },
+        "message": "CommandInvocation(New-LocalUser): \"New-LocalUser\"\nParameterBinding(New-LocalUser): name=\"Name\"; value=\"AdminUser57\"\nParameterBinding(New-LocalUser): name=\"Password\"; value=\"System.Security.SecureString\"\nParameterBinding(New-LocalUser): name=\"FullName\"; value=\"Admin User 57\"\nParameterBinding(New-LocalUser): name=\"Description\"; value=\"Generated Admin User 57\"\n\n\nContext:\n        Severity = Informational\n        Host Name = ConsoleHost\n        Host Version = 5.1.19041.4648\n        Host ID = 9948f59e-516c-4f7b-949d-bbbe67079ed8\n        Host Application = C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\n        Engine Version = 5.1.19041.4648\n        Runspace ID = 5b211d0e-dbc1-45c7-978b-b1c01f12d414\n        Pipeline ID = 10\n        Command Name = New-LocalUser\n        Command Type = Cmdlet\n        Script Name = \n        Command Path = \n        Sequence Number = 396\n        User = MELD\\LAB Administrator\n        Connected User = \n        Shell ID = Microsoft.PowerShell\n\n\nUser Data:\n",
+        "powershell": {
+            "command": {
+                "invocation_details": [
+                    {
+                        "related_command": "New-LocalUser",
+                        "type": "CommandInvocation",
+                        "value": "\"New-LocalUser\""
+                    },
+                    {
+                        "name": "\"Name\"",
+                        "related_command": "New-LocalUser",
+                        "type": "ParameterBinding",
+                        "value": "\"AdminUser57\""
+                    },
+                    {
+                        "name": "\"Password\"",
+                        "related_command": "New-LocalUser",
+                        "type": "ParameterBinding",
+                        "value": "\"System.Security.SecureString\""
+                    },
+                    {
+                        "name": "\"FullName\"",
+                        "related_command": "New-LocalUser",
+                        "type": "ParameterBinding",
+                        "value": "\"Admin User 57\""
+                    },
+                    {
+                        "name": "\"Description\"",
+                        "related_command": "New-LocalUser",
+                        "type": "ParameterBinding",
+                        "value": "\"Generated Admin User 57\""
+                    }
+                ],
+                "name": "New-LocalUser",
+                "type": "Cmdlet"
+            },
+            "engine": {
+                "version": "5.1.19041.4648"
+            },
+            "id": "Microsoft.PowerShell",
+            "pipeline_id": "10",
+            "process": {
+                "executable_version": "5.1.19041.4648"
+            },
+            "runspace_id": "5b211d0e-dbc1-45c7-978b-b1c01f12d414"
+        },
+        "process": {
+            "args": [
+                "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+            ],
+            "args_count": 1,
+            "command_line": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "title": "ConsoleHost"
+        },
+        "related": {
+            "user": "LAB Administrator"
+        },
+        "user": {
+            "domain": "MELD",
+            "id": "S-1-5-21-981878584-487602356-1169203714-500",
+            "name": "LAB Administrator"
+        },
+        "winlog": {
+            "activity_id": "{458d2c95-badf-0001-a6a7-1d6ca7f7da01}",
+            "api": "wineventlog",
+            "channel": "Microsoft-Windows-PowerShell/Operational",
+            "event_id": "4103",
+            "opcode": "To be used when operation is just executing a method",
+            "provider_guid": "{a0c1853b-5c40-4b15-8766-3cf1c58f985a}",
+            "provider_name": "Microsoft-Windows-PowerShell",
+            "task": "Executing Pipeline",
+            "user": {
+                "domain": "MELD",
+                "identifier": "S-1-5-21-981878584-487602356-1169203714-500",
+                "name": "LAB Administrator",
+                "type": "User"
+            },
+            "version": 1
+        }
+    }
+]

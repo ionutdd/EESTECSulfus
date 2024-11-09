@@ -1,0 +1,22 @@
+[
+    {
+        "event_code": "10000",
+        "event_kind": "event",
+        "event_provider": "Microsoft-Windows-RestartManager",
+        "log_level": "information",
+        "message": "Starting session 0 - \u200e2024\u200e-\u200e08\u200e-\u200e27T14:11:01.138098100Z.\n",
+        "winlog_api": "wineventlog",
+        "winlog_channel": "Application",
+        "winlog_event_id": "10000",
+        "winlog_opcode": "Info",
+        "winlog_provider_guid": "{0888e5ef-9b98-4695-979d-e92ce4247224}",
+        "winlog_provider_name": "Microsoft-Windows-RestartManager",
+        "winlog_user_domain": "MELD",
+        "winlog_user_identifier": "S-1-5-21-981878584-487602356-1169203714-500",
+        "winlog_user_name": "LAB Administrator",
+        "winlog_user_type": "User",
+        "winlog_user_data_RmSessionId": "0",
+        "winlog_user_data_UTCStartTime": "2024-08-27T14:11:01.1380981Z",
+        "winlog_user_data_xml_name": "RmSessionEvent"
+    }
+]

@@ -1,0 +1,33 @@
+[
+    {
+        "event_action": "File created (rule: FileCreate)",
+        "event_category": "file",
+        "event_code": "11",
+        "event_kind": "event",
+        "event_module": "sysmon",
+        "event_provider": "Microsoft-Windows-Sysmon",
+        "event_type": "creation",
+        "file_directory": "C:\\Windows\\Temp",
+        "file_extension": "TMP",
+        "file_name": "~DFE65753909C827834.TMP",
+        "file_path": "C:\\Windows\\Temp\\~DFE65753909C827834.TMP",
+        "log_level": "information",
+        "message": "File created:\nRuleName: technique_id=T1574.010,technique_name=Services File Permissions Weakness\nProcessGuid: {d7942c09-dbde-66cd-a501-000000000900}\nProcessId: 10044\nImage: C:\\Windows\\system32\\msiexec.exe\nTargetFilename: C:\\Windows\\Temp\\~DFE65753909C827834.TMP\nUser: NT AUTHORITY\\SYSTEM\n",
+        "process_executable": "C:\\Windows\\system32\\msiexec.exe",
+        "process_name": "msiexec.exe",
+        "rule_name": "technique_id=T1574.010,technique_name=Services File Permissions Weakness",
+        "winlog_api": "wineventlog",
+        "winlog_channel": "Microsoft-Windows-Sysmon/Operational",
+        "winlog_event_data_User": "NT AUTHORITY\\SYSTEM",
+        "winlog_event_id": "11",
+        "winlog_opcode": "Info",
+        "winlog_provider_guid": "{5770385f-c22a-43e0-bf4c-06f5698ffbd9}",
+        "winlog_provider_name": "Microsoft-Windows-Sysmon",
+        "winlog_task": "File created (rule: FileCreate)",
+        "winlog_user_domain": "NT AUTHORITY",
+        "winlog_user_identifier": "S-1-5-18",
+        "winlog_user_name": "SYSTEM",
+        "winlog_user_type": "User",
+        "winlog_version": 2
+    }
+]

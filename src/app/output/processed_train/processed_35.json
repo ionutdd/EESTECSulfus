@@ -1,0 +1,31 @@
+[
+    {
+        "event_action": "Execute a Remote Command",
+        "event_category": "process",
+        "event_code": "4104",
+        "event_kind": "event",
+        "event_module": "powershell",
+        "event_provider": "Microsoft-Windows-PowerShell",
+        "event_type": "info",
+        "log_level": "verbose",
+        "message": "Creating Scriptblock text (1 of 1):\nbitsadmin /cancel backdoor1\n\nScriptBlock ID: f9604516-4faf-4d13-b45f-aa2d64ba60b6\nPath: \n",
+        "powershell_file_script_block_id": "f9604516-4faf-4d13-b45f-aa2d64ba60b6",
+        "powershell_file_script_block_text": "bitsadmin /cancel backdoor1",
+        "powershell_sequence": 1,
+        "powershell_total": 1,
+        "user_id": "S-1-5-21-981878584-487602356-1169203714-500",
+        "winlog_activity_id": "{458d2c95-badf-0001-6dcb-94b052edda01}",
+        "winlog_api": "wineventlog",
+        "winlog_channel": "Microsoft-Windows-PowerShell/Operational",
+        "winlog_event_id": "4104",
+        "winlog_opcode": "On create calls",
+        "winlog_provider_guid": "{a0c1853b-5c40-4b15-8766-3cf1c58f985a}",
+        "winlog_provider_name": "Microsoft-Windows-PowerShell",
+        "winlog_task": "Execute a Remote Command",
+        "winlog_user_domain": "MELD",
+        "winlog_user_identifier": "S-1-5-21-981878584-487602356-1169203714-500",
+        "winlog_user_name": "LAB Administrator",
+        "winlog_user_type": "User",
+        "winlog_version": 1
+    }
+]
