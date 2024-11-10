@@ -1,0 +1,57 @@
+[
+    {
+        "event": {
+            "action": "Registry object added or deleted (rule: RegistryEvent)",
+            "category": [
+                "configuration",
+                "registry"
+            ],
+            "code": "12",
+            "kind": "event",
+            "module": "sysmon",
+            "provider": "Microsoft-Windows-Sysmon",
+            "type": [
+                "change"
+            ]
+        },
+        "label": 0,
+        "log": {
+            "level": "information"
+        },
+        "message": "Registry object added or deleted:\nRuleName: technique_id=T1543,technique_name=Service Creation\nEventType: CreateKey\nProcessGuid: {55a8266f-d718-66b1-1b00-000000000700}\nProcessId: 1288\nImage: C:\\Windows\\system32\\svchost.exe\nTargetObject: HKLM\\System\\CurrentControlSet\\Services\\W32Time\\Config\\Status\nUser: NT AUTHORITY\\LOCAL SERVICE\n",
+        "process": {
+            "executable": "C:\\Windows\\system32\\svchost.exe",
+            "name": "svchost.exe"
+        },
+        "registry": {
+            "hive": "HKLM",
+            "key": "System\\CurrentControlSet\\Services\\W32Time\\Config\\Status",
+            "path": "HKLM\\System\\CurrentControlSet\\Services\\W32Time\\Config\\Status",
+            "value": "Status"
+        },
+        "rule": {
+            "name": "technique_id=T1543,technique_name=Service Creation"
+        },
+        "winlog": {
+            "api": "wineventlog",
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_data": {
+                "EventType": "CreateKey",
+                "TargetObject": "HKLM\\System\\CurrentControlSet\\Services\\W32Time\\Config\\Status",
+                "User": "NT AUTHORITY\\LOCAL SERVICE"
+            },
+            "event_id": "12",
+            "opcode": "Info",
+            "provider_guid": "{5770385f-c22a-43e0-bf4c-06f5698ffbd9}",
+            "provider_name": "Microsoft-Windows-Sysmon",
+            "task": "Registry object added or deleted (rule: RegistryEvent)",
+            "user": {
+                "domain": "NT AUTHORITY",
+                "identifier": "S-1-5-18",
+                "name": "SYSTEM",
+                "type": "User"
+            },
+            "version": 2
+        }
+    }
+]

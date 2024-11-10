@@ -1,0 +1,55 @@
+[
+    {
+        "event": {
+            "action": "File creation time changed (rule: FileCreateTime)",
+            "category": [
+                "file"
+            ],
+            "code": "2",
+            "kind": "event",
+            "module": "sysmon",
+            "provider": "Microsoft-Windows-Sysmon",
+            "type": [
+                "change"
+            ]
+        },
+        "file": {
+            "directory": "C:\\Program Files\\JetBrains\\PyCharm 2024.2.0.1\\plugins\\python-ce\\helpers\\typeshed\\stubs\\beautifulsoup4\\bs4",
+            "extension": "pyi",
+            "name": "element.pyi",
+            "path": "C:\\Program Files\\JetBrains\\PyCharm 2024.2.0.1\\plugins\\python-ce\\helpers\\typeshed\\stubs\\beautifulsoup4\\bs4\\element.pyi"
+        },
+        "label": 0,
+        "log": {
+            "level": "information"
+        },
+        "message": "File creation time changed:\nRuleName: technique_id=T1070.006,technique_name=Timestomp\nProcessGuid: {074624d0-cf8c-66cd-8a05-000000000700}\nProcessId: 936\nImage: C:\\Users\\LAB Administrator\\Downloads\\pycharm-professional-2024.2.0.1.exe\nTargetFilename: C:\\Program Files\\JetBrains\\PyCharm 2024.2.0.1\\plugins\\python-ce\\helpers\\typeshed\\stubs\\beautifulsoup4\\bs4\\element.pyi\nPreviousCreationUtcTime: 2024-08-27 13:09:37.518\nUser: MELD\\LAB Administrator\n",
+        "process": {
+            "executable": "C:\\Users\\LAB Administrator\\Downloads\\pycharm-professional-2024.2.0.1.exe",
+            "name": "pycharm-professional-2024.2.0.1.exe"
+        },
+        "rule": {
+            "name": "technique_id=T1070.006,technique_name=Timestomp"
+        },
+        "winlog": {
+            "api": "wineventlog",
+            "channel": "Microsoft-Windows-Sysmon/Operational",
+            "event_data": {
+                "PreviousCreationUtcTime": "2024-08-27 13:09:37.518",
+                "User": "MELD\\LAB Administrator"
+            },
+            "event_id": "2",
+            "opcode": "Info",
+            "provider_guid": "{5770385f-c22a-43e0-bf4c-06f5698ffbd9}",
+            "provider_name": "Microsoft-Windows-Sysmon",
+            "task": "File creation time changed (rule: FileCreateTime)",
+            "user": {
+                "domain": "NT AUTHORITY",
+                "identifier": "S-1-5-18",
+                "name": "SYSTEM",
+                "type": "User"
+            },
+            "version": 5
+        }
+    }
+]

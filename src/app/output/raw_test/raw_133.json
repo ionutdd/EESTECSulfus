@@ -1,0 +1,54 @@
+[
+    {
+        "event": {
+            "action": "logged-out",
+            "category": [
+                "authentication"
+            ],
+            "code": "4634",
+            "kind": "event",
+            "module": "security",
+            "outcome": "success",
+            "provider": "Microsoft-Windows-Security-Auditing",
+            "type": [
+                "end"
+            ]
+        },
+        "label": 0,
+        "log": {
+            "level": "information"
+        },
+        "message": "An account was logged off.\n\nSubject:\n\tSecurity ID:\t\tS-1-5-21-981878584-487602356-1169203714-1103\n\tAccount Name:\t\tWS2$\n\tAccount Domain:\t\tMELD\n\tLogon ID:\t\t0x872A87\n\nLogon Type:\t\t\t3\n\nThis event is generated when a logon session is destroyed. It may be positively correlated with a logon event using the Logon ID value. Logon IDs are only unique between reboots on the same computer.\n",
+        "related": {
+            "user": "WS2$"
+        },
+        "user": {
+            "domain": "MELD",
+            "id": "S-1-5-21-981878584-487602356-1169203714-1103",
+            "name": "WS2$"
+        },
+        "winlog": {
+            "api": "wineventlog",
+            "channel": "Security",
+            "event_data": {
+                "LogonType": "3",
+                "TargetDomainName": "MELD",
+                "TargetLogonId": "0x872a87",
+                "TargetUserName": "WS2$",
+                "TargetUserSid": "S-1-5-21-981878584-487602356-1169203714-1103"
+            },
+            "event_id": "4634",
+            "keywords": [
+                "Audit Success"
+            ],
+            "logon": {
+                "id": "0x872a87",
+                "type": "Network"
+            },
+            "opcode": "Info",
+            "provider_guid": "{54849625-5478-4994-a5ba-3e3b0328c30d}",
+            "provider_name": "Microsoft-Windows-Security-Auditing",
+            "task": "Logoff"
+        }
+    }
+]
