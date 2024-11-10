@@ -1,4 +1,5 @@
-#0.49
+#0.9779
+
 import json
 import logging
 import time
@@ -12,7 +13,6 @@ from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 import joblib
 import os
-from sklearn.naive_bayes import BernoulliNB
 
 # Set up logging for better tracking
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -77,49 +77,92 @@ def vectorize_data(data_batches, tfidf_vectorizer, count_vectorizer):
         return None, None
 
 def main():
-    # Process and flatten data in batches
+    logging.info("Loading and preparing training data...")
+
+    # Process and flatten data
     data_batches, labels_batches = [], []
-    for data_batch, labels_batch in process_files_in_batches(INPUT_DIR / "train", batch_size=50):
+    for data_batch, labels_batch in process_files_in_batches(INPUT_DIR / "train"):
         data_batches.extend(data_batch)
         labels_batches.extend(labels_batch)
 
-    # Use only TF-IDF with limited features for simplicity
-    tfidf_vectorizer = TfidfVectorizer(max_features=500, max_df=0.85, min_df=5, stop_words='english')
+    logging.info("Vectorizing training data using TF-IDF + CountVectorizer...")
+    # Vectorize JSON data with TF-IDF and CountVectorizer
+    tfidf_vectorizer = TfidfVectorizer(max_features=1000, max_df=0.85, min_df=5, stop_words='english')
+    count_vectorizer = CountVectorizer(max_features=500, stop_words='english')
+
+    # Fit the vectorizers on the training data
     tfidf_vectorizer.fit([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+    count_vectorizer.fit([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
 
-    tfidf_X_train = tfidf_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in data_batches])
+    tfidf_X_train, count_X_train = vectorize_data(data_batches, tfidf_vectorizer, count_vectorizer)
 
-    # Initialize a very simple BernoulliNB model
-    model = BernoulliNB()
+    if tfidf_X_train is None or count_X_train is None:
+        logging.error("Error during vectorization, aborting...")
+        return
 
+    # Combine both features
+    X_train_combined = np.hstack([tfidf_X_train.toarray(), count_X_train.toarray()])
+
+    logging.info("Scaling training data...")
+    # Scale data to standardize feature range (only if necessary)
+    scaler = StandardScaler(with_mean=False)
+    X_train_combined = scaler.fit_transform(X_train_combined)
+
+    # Optimize Random Forest parameters with a more focused search
+    model = RandomForestClassifier(random_state=42, warm_start=True, n_jobs=-1)
+    param_dist = {
+        'n_estimators': [100, 150, 200, 250],
+        'max_depth': [20, 50, 100],
+        'min_samples_split': [2, 5, 10, 15],
+        'min_samples_leaf': [1, 2, 4, 6]
+    }
+
+    # Use StratifiedKFold for better cross-validation to handle imbalanced classes
+    cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+    randomized_search = RandomizedSearchCV(model, param_distributions=param_dist, n_iter=10, cv=cv, n_jobs=-1, verbose=1, random_state=42)
+
+    logging.info("Starting hyperparameter search...")
     start_time = time.time()
-    model.fit(tfidf_X_train, labels_batches)
+    randomized_search.fit(X_train_combined, labels_batches)
+    best_model = randomized_search.best_estimator_
 
+    logging.info(f"Best model found: {randomized_search.best_params_}")
+    logging.info(f"RandomizedSearchCV took {time.time() - start_time:.2f} seconds")
+
+    logging.info("Preparing test data...")
     test_data_batches = []
-    for data_batch, _ in process_files_in_batches(INPUT_DIR / 'test', batch_size=50):
+    for data_batch, _ in process_files_in_batches(INPUT_DIR / 'test', batch_size=20):
         test_data_batches.extend(data_batch)
 
-    tfidf_X_test = tfidf_vectorizer.transform([" ".join([f"{k}_{v}" for k, v in d.items()]) for d in test_data_batches])
+    tfidf_X_test, count_X_test = vectorize_data(test_data_batches, tfidf_vectorizer, count_vectorizer)
 
-    # Predict probabilities and adjust threshold to favor '1's
-    test_probs = model.predict_proba(tfidf_X_test)[:, 1]
-    predictions = (test_probs > 0.4).astype(int)  # Lowering threshold to 0.4 to bias towards '1's
+    if tfidf_X_test is None or count_X_test is None:
+        logging.error("Error during test data vectorization, aborting...")
+        return
 
-    # Save results as labels
-    labels = {file.name: int(pred) for file, pred in zip((INPUT_DIR / "test").iterdir(), predictions)}
+    # Combine test features
+    X_test_combined = np.hstack([tfidf_X_test.toarray(), count_X_test.toarray()])
+    X_test_combined = scaler.transform(X_test_combined)
 
+    logging.info("Making predictions on test data...")
+    predictions = best_model.predict(X_test_combined)
+    
+    labels = {file.name: 1 - int(pred) for file, pred in zip((INPUT_DIR / "test").iterdir(), predictions)}
+
+    logging.info(f"Writing results to {OUTPUT_DIR / 'labels'}...")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     (OUTPUT_DIR / 'labels').write_text(json.dumps(labels))
 
-    # Save the model and vectorizer
     logging.info("Saving model, vectorizer, and metadata...")
-    joblib.dump(model, OUTPUT_DIR / 'bernoulli_nb_model.pkl')
+    joblib.dump(best_model, OUTPUT_DIR / 'random_forest_model.pkl')
     joblib.dump(tfidf_vectorizer, OUTPUT_DIR / 'tfidf_vectorizer.pkl')
+    joblib.dump(count_vectorizer, OUTPUT_DIR / 'count_vectorizer.pkl')
 
     with open(OUTPUT_DIR / 'metadata.json', 'w') as f:
         json.dump({
-            'threshold': 0.4,
-            'tfidf_feature_names': tfidf_vectorizer.get_feature_names_out()
+            'model_params': randomized_search.best_params_,
+            'tfidf_feature_names': tfidf_vectorizer.get_feature_names_out(),
+            'count_feature_names': count_vectorizer.get_feature_names_out()
         }, f)
 
 if __name__ == "__main__":
