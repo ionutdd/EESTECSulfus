@@ -6,7 +6,7 @@ A machine learning pipeline for processing PCAP files, extracting and vectorizin
 ## Project Overview
 This project uses PCAP (packet capture) files as input, extracts relevant network events, and applies feature engineering and machine learning techniques to classify the events. Our model, based on a Random Forest classifier, leverages concurrent processing, feature vectorization, and hyperparameter tuning to reach high accuracy and precision. The code is organized to handle real-world datasets with efficient memory usage and parallelism.
 
-##Install the dependencies with:
+## Install the dependencies with:
 
 ``./packageScript.sh``
 
