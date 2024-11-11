@@ -1,24 +1,53 @@
 # EESTECSulfus
 
 # Windows Log Classifier
+A machine learning pipeline for processing PCAP files, extracting and vectorizing events, and training a Random Forest model to classify network events with high precision. This project was developed as part of a 24-hour hackathon, achieving a precision of 98% which helped us win 3rd place. [View the PowerPoint Presentation](https://www.canva.com/design/DAGVWQg2nyc/S7or-5Hfy90PsidPC--Z0w/edit?utm_content=DAGVWQg2nyc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton).
 
-This project classifies Windows system logs to identify abnormal behavior.
+## Project Overview
+This project uses PCAP (packet capture) files as input, extracts relevant network events, and applies feature engineering and machine learning techniques to classify the events. Our model, based on a Random Forest classifier, leverages concurrent processing, feature vectorization, and hyperparameter tuning to reach high accuracy and precision. The code is organized to handle real-world datasets with efficient memory usage and parallelism.
 
-## Getting Started
+## Link to PPT prezentation
 
-### Prerequisites
-- Docker must be installed.
 
-### Running the Project
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+##Install the dependencies with:
 
-# Build Image
+``./packageScript.sh``
 
- `docker build -t windows-log-classifier .`
+## Features
 
-# Run 
- `docker run windows-log-classifier`
+PCAP Parsing with Scapy: Extracts TCP payload data from PCAP files for further processing.
+Concurrent File Processing: Uses Python's ProcessPoolExecutor for batch processing and concurrency, enabling the handling of large datasets efficiently.
+Feature Engineering: Leverages TF-IDF and CountVectorizer for numerical feature representation of text data.
+Model Training with Random Forest: Trains a Random Forest classifier with hyperparameter tuning using RandomizedSearchCV for optimal performance.
+High Precision: Achieved a precision of 98%, demonstrating robust performance in network event classification.
+
+## Project Workflow
+Data Extraction: Parses PCAP files to decode TCP payloads and extract JSON-encoded event data.
+Batch Processing: Splits data into manageable batches and processes them in parallel, which is ideal for handling large data volumes.
+Vectorization: Converts extracted text data into numerical features using TF-IDF and Count Vectorizer.
+Model Training: Uses a Random Forest classifier with hyperparameter tuning to optimize accuracy and precision.
+Prediction and Output: After training, the model predicts classifications on test data and saves the results.
+
+## File Structure
+
+├── InputData            # Folder for input PCAP files
+├── output               # Folder for model and prediction outputs
+├── baseline.py          # Main script for data processing, model training, and prediction
+├── packageScript.sh     # Project dependencies
+
+## Usage
+
+Prepare Data: Place the training PCAP files in the InputData/train directory and testing files in InputData/test.
+Run the Pipeline: Execute main.py to process the data, train the model, and make predictions.
+View Results: Predictions and model files will be saved in the output directory.
+
+## Hackathon Highlights
+
+This project was completed in a high-pressure, 24-hour hackathon setting, emphasizing quick problem-solving and efficient code organization. Despite the time constraints, we achieved high model precision (98%), highlighting the effectiveness of ensemble learning and optimized processing.
+
+## Results
+
+Precision: 98%
+Optimization: Efficient batch processing and memory management allowed for real-time data handling.
+High Dimensionality Handling: The Random Forest model and vectorization techniques performed well on high-dimensional data, showcasing the project's scalability.
